@@ -1,7 +1,7 @@
 //+------------------------------------------------------------------+
-//| BOKWETE BIG GAME V1 |
+//| NABICHA BIG GAME V1 |
 //+------------------------------------------------------------------+
-#property copyright "BOKWETE - Kinshasa"
+#property copyright "NABICHA - Kinshasa"
 #property version "1.0"
 #property strict
 #include <Trade\Trade.mqh>
@@ -10,10 +10,10 @@ CTrade trade;
 //===================== PANNEAU UTILISATEUR =========================
 input string ___________TRADES___________ = "--- CONFIG 3 TRADES INDEPENDANTS ---";
 input bool Activer_Trade1 = true;
-input double Lot_Trade1 = 0.01;
+input double Lot_Trade1 = 0.04;
 input int TP_Trade1_Pips = 150; // 150 pips = 15$ sur 0.01 lot Gold
-input bool Activer_Trade2 = false;
-input double Lot_Trade2 = 0.01;
+input bool Activer_Trade2 = true;
+input double Lot_Trade2 = 0.03;
 input int TP_Trade2_Pips = 350; // 350 pips = 35$
 input bool Activer_Trade3 = false;
 input double Lot_Trade3 = 0.01;
@@ -21,7 +21,7 @@ input int TP_Trade3_Pips = 800; // 800 pips = 80$ de base
 input int Trailing_Trade3_Pips = 400; // Trailing 40$ pour laisser filer à 120$+
 
 input string ___________SL_BE___________ = "--- SL COMMUN ET BE ---";
-input int SL_Pips = 40;
+input int SL_Pips = 100;
 input int BE_Pips = 50;
 input int BE_Offset_Pips = 10; // BE + 1$ pour frais
 
@@ -77,10 +77,10 @@ int OnInit(){
    dernierHeartbeat = TimeGMT();
    derniereHeureRapport = TimeGMT();
    soldeDebutJour = AccountInfoDouble(ACCOUNT_BALANCE);
-   PrintFormat("BOKWETE BIG BOT demarre sur %s (%s). Push: %s.",_Symbol,EnumToString(_Period),ActiverPush?"active":"desactive");
+   PrintFormat("NABICHA BIG BOT demarre sur %s (%s). Push: %s.",_Symbol,EnumToString(_Period),ActiverPush?"active":"desactive");
    if(ActiverPush){
       ResetLastError();
-      if(!SendNotification(StringFormat("BOKWETE demarre sur %s (%s). Bot actif.",_Symbol,EnumToString(_Period)))){
+      if(!SendNotification(StringFormat("NABICHA demarre sur %s (%s). Bot actif.",_Symbol,EnumToString(_Period)))){
          PrintFormat("Echec notification de demarrage. Erreur MT5: %d",GetLastError());
       }
    }
@@ -101,10 +101,10 @@ void OnDeinit(const int reason){
    if(reason==9) texteRaison = "TU as fermé MT5";
 
    if(ActiverPush){
-      SendNotification(StringFormat("🔴 BOKWETE BIG BOT ARRETE\n\nRaison claire: %s\n\nCode technique: raison %d\nHeure Kin: %02d:%02d\n\nSi c'est toi qui a fait l'action, c'est normal. Remets le bot.",texteRaison,reason,tmHourKin(),tmMinKin()));
+      SendNotification(StringFormat("🔴 NABICHA BIG BOT ARRETE\n\nRaison claire: %s\n\nCode technique: raison %d\nHeure Kin: %02d:%02d\n\nSi c'est toi qui a fait l'action, c'est normal. Remets le bot.",texteRaison,reason,tmHourKin(),tmMinKin()));
    }
    
-   Print("=== BOKWETE ARRET ===");
+   Print("=== NABICHA ARRET ===");
    Print("Raison claire: ",texteRaison);
    Print("Code: raison ",reason);
 }
@@ -171,11 +171,11 @@ void OuvrirLes3Trades(ENUM_ORDER_TYPE type, double hh, double ll, double adxVal)
    double prix = (type==ORDER_TYPE_BUY)?SymbolInfoDouble(_Symbol,SYMBOL_ASK):SymbolInfoDouble(_Symbol,SYMBOL_BID);
    double sl = (type==ORDER_TYPE_BUY)?prix - SL_Pips*10*_Point : prix + SL_Pips*10*_Point;
    int nb=0;
-   if(Activer_Trade1){ double tp=(type==ORDER_TYPE_BUY)?prix+TP_Trade1_Pips*10*_Point:prix-TP_Trade1_Pips*10*_Point; if(trade.PositionOpen(_Symbol,type,Lot_Trade1,prix,sl,tp,"BOKWETE T1 "+IntegerToString(TP_Trade1_Pips)+"p")) nb++; }
-   if(Activer_Trade2){ double tp=(type==ORDER_TYPE_BUY)?prix+TP_Trade2_Pips*10*_Point:prix-TP_Trade2_Pips*10*_Point; if(trade.PositionOpen(_Symbol,type,Lot_Trade2,prix,sl,tp,"BOKWETE T2 "+IntegerToString(TP_Trade2_Pips)+"p")) nb++; }
-   if(Activer_Trade3){ double tp=(type==ORDER_TYPE_BUY)?prix+TP_Trade3_Pips*10*_Point:prix-TP_Trade3_Pips*10*_Point; if(trade.PositionOpen(_Symbol,type,Lot_Trade3,prix,sl,tp,"BOKWETE T3 "+IntegerToString(TP_Trade3_Pips)+"p TRAIL")) nb++; }
+   if(Activer_Trade1){ double tp=(type==ORDER_TYPE_BUY)?prix+TP_Trade1_Pips*10*_Point:prix-TP_Trade1_Pips*10*_Point; if(trade.PositionOpen(_Symbol,type,Lot_Trade1,prix,sl,tp,"NABICHA T1 "+IntegerToString(TP_Trade1_Pips)+"p")) nb++; }
+   if(Activer_Trade2){ double tp=(type==ORDER_TYPE_BUY)?prix+TP_Trade2_Pips*10*_Point:prix-TP_Trade2_Pips*10*_Point; if(trade.PositionOpen(_Symbol,type,Lot_Trade2,prix,sl,tp,"NABICHA T2 "+IntegerToString(TP_Trade2_Pips)+"p")) nb++; }
+   if(Activer_Trade3){ double tp=(type==ORDER_TYPE_BUY)?prix+TP_Trade3_Pips*10*_Point:prix-TP_Trade3_Pips*10*_Point; if(trade.PositionOpen(_Symbol,type,Lot_Trade3,prix,sl,tp,"NABICHA T3 "+IntegerToString(TP_Trade3_Pips)+"p TRAIL")) nb++; }
    if(Notif_Ouverture && nb>0 && ActiverPush){
-      SendNotification(StringFormat("🦁 BOKWETE BIG BOT - %s DETECTE - %d TRADE(S) OUVERT(S)\n\n📍 Prix Entree: %.2f\n🛑 SL COMMUN: %.2f (%d pips = %.2f$)\n\n🎯 T1: %.2f (%d pips = %.2f$)\n🎯 T2: %.2f (%d pips = %.2f$)\n🎯 T3: %.2f (%d pips = %.2f$) + trailing %d pips\n\n📊 Setup:\nTendance H1: %s\nBOS M15: %.2f casse\nADX: %.1f\nRSI M5: Pullback OK\nEMA21 M5: Distance OK\n\n⏰ Heure Kin: %02d:%02d\nOn vise GROS - RR 1:3 a 1:8",type==ORDER_TYPE_BUY?"ACHAT GEANT":"VENTE GEANTE",nb,prix,sl,SL_Pips,SL_Pips*0.1*Lot_Trade1/0.01,prix+(type==ORDER_TYPE_BUY?1:-1)*TP_Trade1_Pips*10*_Point,TP_Trade1_Pips,TP_Trade1_Pips*0.1*Lot_Trade1/0.01,prix+(type==ORDER_TYPE_BUY?1:-1)*TP_Trade2_Pips*10*_Point,TP_Trade2_Pips,TP_Trade2_Pips*0.1*Lot_Trade2/0.01,prix+(type==ORDER_TYPE_BUY?1:-1)*TP_Trade3_Pips*10*_Point,TP_Trade3_Pips,TP_Trade3_Pips*0.1*Lot_Trade3/0.01,Trailing_Trade3_Pips,tendanceHausseOuBaisse(),type==ORDER_TYPE_BUY?hh:ll,adxVal,tmHourKin(),tmMinKin()));
+      SendNotification(StringFormat("🦁 NABICHA BIG BOT - %s DETECTE - %d TRADE(S) OUVERT(S)\n\n📍 Prix Entree: %.2f\n🛑 SL COMMUN: %.2f (%d pips = %.2f$)\n\n🎯 T1: %.2f (%d pips = %.2f$)\n🎯 T2: %.2f (%d pips = %.2f$)\n🎯 T3: %.2f (%d pips = %.2f$) + trailing %d pips\n\n📊 Setup:\nTendance H1: %s\nBOS M15: %.2f casse\nADX: %.1f\nRSI M5: Pullback OK\nEMA21 M5: Distance OK\n\n⏰ Heure Kin: %02d:%02d\nOn vise GROS - RR 1:3 a 1:8",type==ORDER_TYPE_BUY?"ACHAT GEANT":"VENTE GEANTE",nb,prix,sl,SL_Pips,SL_Pips*0.1*Lot_Trade1/0.01,prix+(type==ORDER_TYPE_BUY?1:-1)*TP_Trade1_Pips*10*_Point,TP_Trade1_Pips,TP_Trade1_Pips*0.1*Lot_Trade1/0.01,prix+(type==ORDER_TYPE_BUY?1:-1)*TP_Trade2_Pips*10*_Point,TP_Trade2_Pips,TP_Trade2_Pips*0.1*Lot_Trade2/0.01,prix+(type==ORDER_TYPE_BUY?1:-1)*TP_Trade3_Pips*10*_Point,TP_Trade3_Pips,TP_Trade3_Pips*0.1*Lot_Trade3/0.01,Trailing_Trade3_Pips,tendanceHausseOuBaisse(),type==ORDER_TYPE_BUY?hh:ll,adxVal,tmHourKin(),tmMinKin()));
    }
 }
 
@@ -197,7 +197,7 @@ void GererToutesPositions(){
          uint codeRetour = trade.ResultRetcode();
          if(modifie && codeRetour==TRADE_RETCODE_DONE){
             sl = nouveauBE;
-            if(Notif_BE && ActiverPush) SendNotification(StringFormat("🛡️ BOKWETE BE ACTIVE - %s\nEntree: %.2f\nNouveau SL: %.2f (BE + %d pips)\nProfit actuel: +%.1f pips\nOn ne peut plus perdre - On laisse courir vers TP gros!",com,entree,nouveauBE,BE_Offset_Pips,profitPips));
+            if(Notif_BE && ActiverPush) SendNotification(StringFormat("🛡️ NABICHA BE ACTIVE - %s\nEntree: %.2f\nNouveau SL: %.2f (BE + %d pips)\nProfit actuel: +%.1f pips\nOn ne peut plus perdre - On laisse courir vers TP gros!",com,entree,nouveauBE,BE_Offset_Pips,profitPips));
          } else if(!modifie || codeRetour!=TRADE_RETCODE_NO_CHANGES){
             PrintFormat("Echec modification SL au BE pour la position #%I64u: code %u (%s), erreur %d",ticket,codeRetour,trade.ResultRetcodeDescription(),GetLastError());
          }
@@ -234,7 +234,7 @@ void EnvoyerHeartbeatComplet(){
    double adx[]; CopyBuffer(hADX_M15,0,0,1,adx); double rsi[]; CopyBuffer(hRSI_M5,0,0,1,rsi);
    string tendance = (e50[0]>e200[0])?"🟢 HAUSSIERE H1 - Cherche ACHAT":"🔴 BAISSIERE H1 - Cherche VENTE";
    string adxEtat = (adx[0]>=ADX_Min)?"✅ ADX Fort - Pret a exploser":"⏳ ADX Faible - Marche mou, on attend";
-   string msg=StringFormat("📡 BOKWETE BIG BOT - ACTIF EN CHASSE - %02d:%02d KIN\n\n💰 Solde: $%.2f\n💵 Equity: $%.2f\n📈 Jour: %s$%.2f\n📍 Positions ouvertes: %d\n\n📊 ANALYSE EN TEMPS REEL:\n%s\n💪 ADX M15: %.1f - %s\n📉 RSI M5: %.1f\n\n🎯 CONFIG CHASSE:\nT1: %s %d pips Lot %.2f\nT2: %s %d pips Lot %.2f\nT3: %s %d pips + trailing %d Lot %.2f\nSL: %d pips commun\n\n🔍 Statut: En attente BOS M15 (%d bougies) + Pullback EMA%d M5\nBot vivant, tout va bien.\n\nBOKWETE BIG GAME ULTIMATE",tmHourKin(),tmMinKin(),bal,eq,profitJour>=0?"+":"",profitJour,PositionsTotal(),tendance,adx[0],adxEtat,rsi[0],Activer_Trade1?"ON":"OFF",TP_Trade1_Pips,Lot_Trade1,Activer_Trade2?"ON":"OFF",TP_Trade2_Pips,Lot_Trade2,Activer_Trade3?"ON":"OFF",TP_Trade3_Pips,Trailing_Trade3_Pips,Lot_Trade3,SL_Pips,BOS_Lookback_M15,EMA_M5_Pullback);
+   string msg=StringFormat("📡 NABICHA BIG BOT - ACTIF EN CHASSE - %02d:%02d KIN\n\n💰 Solde: $%.2f\n💵 Equity: $%.2f\n📈 Jour: %s$%.2f\n📍 Positions ouvertes: %d\n\n📊 ANALYSE EN TEMPS REEL:\n%s\n💪 ADX M15: %.1f - %s\n📉 RSI M5: %.1f\n\n🎯 CONFIG CHASSE:\nT1: %s %d pips Lot %.2f\nT2: %s %d pips Lot %.2f\nT3: %s %d pips + trailing %d Lot %.2f\nSL: %d pips commun\n\n🔍 Statut: En attente BOS M15 (%d bougies) + Pullback EMA%d M5\nBot vivant, tout va bien.\n\nNABICHA BIG GAME ULTIMATE",tmHourKin(),tmMinKin(),bal,eq,profitJour>=0?"+":"",profitJour,PositionsTotal(),tendance,adx[0],adxEtat,rsi[0],Activer_Trade1?"ON":"OFF",TP_Trade1_Pips,Lot_Trade1,Activer_Trade2?"ON":"OFF",TP_Trade2_Pips,Lot_Trade2,Activer_Trade3?"ON":"OFF",TP_Trade3_Pips,Trailing_Trade3_Pips,Lot_Trade3,SL_Pips,BOS_Lookback_M15,EMA_M5_Pullback);
    if(ActiverPush) SendNotification(msg);
 }
 
@@ -244,7 +244,7 @@ void VerifierRapport22hComplet(){
    if(hKin==HeureRapportKin && m>=0 && m<=5 && TimeGMT()-derniereHeureRapport > 3500){
       double bal=AccountInfoDouble(ACCOUNT_BALANCE); double eq=AccountInfoDouble(ACCOUNT_EQUITY);
       double profitJour=eq-soldeDebutJour;
-      string msg=StringFormat("📊 RAPPORT JOURNALIER 22H00 KINSHASA - BOKWETE BIG BOT\n\n💰 Solde cloture: $%.2f\n💵 Equity: $%.2f\n📈 Resultat du jour: %s$%.2f\n📍 Positions encore ouvertes: %d\n\n🎯 Config du jour:\nT1 %d pips (%.2f$) - %s\nT2 %d pips (%.2f$) - %s\nT3 %d pips + trailing %d (%.2f$+) - %s\nSL: %d pips commun\n\nTendance fin de jour: %s\n\n💤 Bot passe en veille 22h-07h Kin\nReprise chasse demain 07h00\nBravo chasseur!\n\nBOKWETE",bal,eq,profitJour>=0?"+":"",profitJour,PositionsTotal(),TP_Trade1_Pips,TP_Trade1_Pips*0.1,Activer_Trade1?"ON":"OFF",TP_Trade2_Pips,TP_Trade2_Pips*0.1,Activer_Trade2?"ON":"OFF",TP_Trade3_Pips,Trailing_Trade3_Pips,TP_Trade3_Pips*0.1,Activer_Trade3?"ON":"OFF",SL_Pips,derniereTendanceH1);
+      string msg=StringFormat("📊 RAPPORT JOURNALIER 22H00 KINSHASA - NABICHA BIG BOT\n\n💰 Solde cloture: $%.2f\n💵 Equity: $%.2f\n📈 Resultat du jour: %s$%.2f\n📍 Positions encore ouvertes: %d\n\n🎯 Config du jour:\nT1 %d pips (%.2f$) - %s\nT2 %d pips (%.2f$) - %s\nT3 %d pips + trailing %d (%.2f$+) - %s\nSL: %d pips commun\n\nTendance fin de jour: %s\n\n💤 Bot passe en veille 22h-07h Kin\nReprise chasse demain 07h00\nBravo chasseur!\n\nNABICHA",bal,eq,profitJour>=0?"+":"",profitJour,PositionsTotal(),TP_Trade1_Pips,TP_Trade1_Pips*0.1,Activer_Trade1?"ON":"OFF",TP_Trade2_Pips,TP_Trade2_Pips*0.1,Activer_Trade2?"ON":"OFF",TP_Trade3_Pips,Trailing_Trade3_Pips,TP_Trade3_Pips*0.1,Activer_Trade3?"ON":"OFF",SL_Pips,derniereTendanceH1);
       if(ActiverPush) SendNotification(msg);
       derniereHeureRapport=TimeGMT(); soldeDebutJour=bal;
    }
@@ -264,5 +264,5 @@ string tendanceHausseOuBaisse(){ double e50[], e200[]; CopyBuffer(hEMA50_H1,0,0,
 int tmHourKin(){ MqlDateTime tm; TimeToStruct(TimeGMT(),tm); return tm.hour+1; }
 int tmMinKin(){ MqlDateTime tm; TimeToStruct(TimeGMT(),tm); return tm.min; }
 void OnTradeTransaction(const MqlTradeTransaction& trans, const MqlTradeRequest& req, const MqlTradeResult& res){
-   if(trans.type==TRADE_TRANSACTION_DEAL_ADD){ if(HistoryDealSelect(trans.deal)){ double profit=HistoryDealGetDouble(trans.deal,DEAL_PROFIT); string com=HistoryDealGetString(trans.deal,DEAL_COMMENT); if(profit!=0 && ActiverPush){ if(profit>0 && Notif_TP) SendNotification(StringFormat("💰 BIG BOT TP TOUCHE - %s\nResultat: +$%.2f (%.1f pips)\n%s\nBOKWETE",com,profit,profit*10,profit>=30?"🎉 GROS TRADE - BRAVO CHASSEUR!":"✅")); if(profit<0 && Notif_SL) SendNotification(StringFormat("🛑 BIG BOT SL TOUCHE - %s\nPerte: -$%.2f\nSL 100 pips respecte - Prochain setup en chasse\nBOKWETE",com,MathAbs(profit))); } } }
+   if(trans.type==TRADE_TRANSACTION_DEAL_ADD){ if(HistoryDealSelect(trans.deal)){ double profit=HistoryDealGetDouble(trans.deal,DEAL_PROFIT); string com=HistoryDealGetString(trans.deal,DEAL_COMMENT); if(profit!=0 && ActiverPush){ if(profit>0 && Notif_TP) SendNotification(StringFormat("💰 BIG BOT TP TOUCHE - %s\nResultat: +$%.2f (%.1f pips)\n%s\nNABICHA",com,profit,profit*10,profit>=30?"🎉 GROS TRADE - BRAVO CHASSEUR!":"✅")); if(profit<0 && Notif_SL) SendNotification(StringFormat("🛑 BIG BOT SL TOUCHE - %s\nPerte: -$%.2f\nSL 100 pips respecte - Prochain setup en chasse\nNABICHA",com,MathAbs(profit))); } } }
 }

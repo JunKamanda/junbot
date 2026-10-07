@@ -12,7 +12,7 @@ input int ADX_Periode = 14;
 input double ADX_Minimum = 22.0;
 input double MaxSpreadPoints = 500;
 input double PerteMaxJournaliere = 5.0;
-input double ObjectifJournalier = 7.0;
+input double ObjectifJournalier = 15.0;
 
 //--- NEWS SÉPARÉES - INTACT
 input bool ActiverFiltreNews = true;
@@ -62,7 +62,7 @@ void OnTick(){
    double spread=(double)SymbolInfoInteger(_Symbol,SYMBOL_SPREAD);
    if(spread > MaxSpreadPoints){ if(Notif_Spread && TimeGMT()-dernierAlerteSpread > 1800){ Notifier("⚠️ SPREAD ELEVE\nXAUUSD\nSpread actuel: "+DoubleToString(spread/10.0,2)+"\nMaximum autorise: "+DoubleToString(MaxSpreadPoints/10.0,2)+"\nEntrees suspendues."); dernierAlerteSpread=TimeGMT(); } return; } else if(dernierAlerteSpread!=0 && spread < MaxSpreadPoints*0.8){ Notifier("🟢 SPREAD NORMALISE\nXAUUSD\nSpread: "+DoubleToString(spread/10.0,2)+"\nTrading autorise a nouveau."); dernierAlerteSpread=0; }
    VerifierTendance(); VerifierLimites(); if(tradingBloque) return; if(PositionsTotal()>0){ VerifierBE(); return; }
-   MqlDateTime tm; TimeToStruct(TimeGMT(),tm); int hKin=tm.hour+1; if(hKin<9 || hKin>18) return;
+   int hKin=tmHourKin(); if(hKin>=20) return;
    double adx[]; CopyBuffer(hADX,0,0,1,adx); if(adx[0]<ADX_Minimum) return;
    
    //--- LECTURE RSI POUR FILTRE
@@ -111,7 +111,7 @@ void VerifierTendance(){ string now=GetTendanceM5(); if(derniereTendance!="" && 
 void EnvoyerHeartbeat(){ string t=GetTendanceM5(); MqlDateTime tm; TimeToStruct(TimeGMT(),tm); int hKin=tm.hour+1; string sess=(hKin>=9&&hKin<13)?"Londres":"New York"; Notifier(StringFormat("📡 BOKWETE GOLD SCALPER - ACTIF\nXAUUSD\nSolde: $%.2f\nCapital: $%.2f\nPositions: %d\nStatut: Recherche d'opportunite\nSession: %s\nTendance M5: %s\nHeure Kin: %02d:%02d",AccountInfoDouble(ACCOUNT_BALANCE),AccountInfoDouble(ACCOUNT_EQUITY),PositionsTotal(),sess,t,tmHourKin(),tmMin())); }
 void VerifierRapportJournalier(){ if(tmHourKin()==HeureRapportKin && tmMin()==0 && Notif_RapportJournalier){ double p=AccountInfoDouble(ACCOUNT_EQUITY)-soldeDebutJour; Notifier(StringFormat("📊 RAPPORT JOURNALIER - BOKWETE GOLD SCALPER\n💰 Solde: $%.2f\n💵 Capital: $%.2f\nResultat du jour: %s$%.2f\nXAUUSD\nBOKWETE",AccountInfoDouble(ACCOUNT_BALANCE),AccountInfoDouble(ACCOUNT_EQUITY),p>=0?"+":"",p)); } }
 void VerifierConnexion(){ if(!TerminalInfoInteger(TERMINAL_CONNECTED) && Notif_Connexion && TimeGMT()-dernierAlerteConnexion>600){ Notifier("🔴 CONNEXION MT5 PERDUE\nBOKWETE GOLD SCALPER\nXAUUSD\nLe terminal ne communique plus correctement avec le serveur."); dernierAlerteConnexion=TimeGMT(); } if(TerminalInfoInteger(TERMINAL_CONNECTED) && dernierAlerteConnexion!=0){ Notifier("🟢 CONNEXION RETABLIE\nBOKWETE GOLD SCALPER\nTrading operationnel."); dernierAlerteConnexion=0; } }
-int tmHourKin(){ MqlDateTime tm; TimeToStruct(TimeGMT(),tm); return tm.hour+1; }
+int tmHourKin(){ MqlDateTime tm; TimeToStruct(TimeGMT(),tm); return (tm.hour+1)%24; }
 int tmMin(){ MqlDateTime tm; TimeToStruct(TimeGMT(),tm); return tm.min; }
 void Notifier(string msg){ if(ActiverPush) SendNotification(msg); }
 void OnTradeTransaction(const MqlTradeTransaction& trans, const MqlTradeRequest& req, const MqlTradeResult& res){ if(trans.type==TRADE_TRANSACTION_DEAL_ADD){ if(HistoryDealSelect(trans.deal)){ double profit=HistoryDealGetDouble(trans.deal,DEAL_PROFIT); if(profit!=0){ if(profit>0 && Notif_TP) Notifier(StringFormat("🎯 OBJECTIF ATTEINT (TP)\nXAUUSD\nLot: %.2f\nResultat: +$%.2f\nRR: 1:1.5\nBOKWETE",trans.volume,profit)); if(profit<0 && Notif_SL) Notifier(StringFormat("🛑 STOP LOSS TOUCHE\nXAUUSD\nLot: %.2f\nResultat: -$%.2f\nProtection active\nBOKWETE",trans.volume,MathAbs(profit))); } } } }
